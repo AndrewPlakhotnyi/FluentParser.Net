@@ -84,6 +84,19 @@ public class FluentParser {
         return string.Empty;
     }
 
+    public string 
+    ReadUntil(char @char) {
+        if (NextChar == @char)
+            return string.Empty;
+        for (int i =_position; i < Length; i++)
+            if (_string[i] == @char){
+                var result = _string.Substring(_position, i - _position);
+                _position = i;
+                return result;
+            }
+        return string.Empty;
+    }
+
     public bool
     TryReadUntilSpace(out string result) => TryReadUntil(' ', int.MaxValue, out result);
 
@@ -200,6 +213,15 @@ public class FluentParser {
         return this;
     }
 
+    public FluentParser
+    SkipAfter(string @string) {
+        if (HasCurrent) {
+            var index = _string.IndexOf(@string, _position, StringComparison.Ordinal);
+            _position = index == -1 ? _string.Length : index + 1;
+        }
+        return this;
+    }
+
 
     public bool
     TryReadXmlNode(out string result) {
@@ -258,7 +280,7 @@ public class FluentParser {
 }
 
 internal static class
-FluentParserHelper {
+FluentParserHelperInternal {
     public static bool
     IsWordCharacter(this char @char) => @char.IsDigit() || @char.IsLetter();
 
@@ -274,4 +296,17 @@ FluentParserHelper {
     public static bool
     IsLetter(this char @char) => @char.IsSmallLetter() || @char.IsCapitalLetter();
 }
+
+public static class 
+FluentParserHelper {
+    public static FluentParser
+    ToFluentParser(this string @string) => new FluentParser(@string);
+
+    public static long
+    ParseLongFromHexString(this string @string)  => Convert.ToInt64(@string, 16);
+
+    public static long
+    ParseIntFromHexString(this string @string)  => Convert.ToInt32(@string, 16);
+}
+
 }
