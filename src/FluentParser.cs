@@ -237,6 +237,12 @@ public class FluentParser {
         while(reader.HasNext) {
             var @char = reader.ReadOne();
             if (@char == '<') {
+                if (reader.NextChar == '!') {
+                    //this probably some kind of internal data  like <!CDATA[]>
+                    reader.SkipAfter('>');
+                    continue;
+                }
+                    
                 if (reader.NextChar == '/') {
                     openedNodes--;
                     if (openedNodes == 0) {
