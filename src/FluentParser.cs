@@ -1,19 +1,21 @@
 ﻿using System;
+using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace FluentParserNet {
 public class FluentParser {
-    private string _string {get; }
+    public string String {get; }
     private int _position {get; set; }
     public int Position => _position;
-    public char NextChar => _string[_position];
-    public bool HasNext => _position < _string.Length - 1;
-    public char NextNextChar => CharactersLeft > 1 ? _string[_position + 1] : '\0';
-    public int Length => _string.Length;
-    public bool HasCurrent => _string.Length > _position;
+    public char NextChar => String[_position];
+    public bool HasNext => _position < String.Length - 1;
+    public char NextNextChar => CharactersLeft > 1 ? String[_position + 1] : '\0';
+    public int Length => String.Length;
+    public bool HasCurrent => String.Length > _position;
     public int CharactersLeft => Length - _position;
 
-    public FluentParser(string @string) => _string = @string;
+    public FluentParser(string @string) => String = @string;
 
     public FluentParser
     SkipOne() {
@@ -27,6 +29,20 @@ public class FluentParser {
         return this;
     }
 
+    public FluentParser
+    SkipSpaces() {
+        while(HasNext && NextChar == ' ')
+            SkipOne();
+        return this;
+    }
+
+    public FluentParser
+    SkipToDigit() {
+        while(HasCurrent && !NextChar.IsDigit())
+            SkipOne();
+        return this;
+    }
+
     public bool
     Next(char @char) => NextChar == @char;
 
@@ -36,21 +52,24 @@ public class FluentParser {
         if (@string.Length > CharactersLeft)
             return false;
 
-        if (_string[_position + offset] != @string[0])
+        if (String[_position + offset] != @string[0])
             return false;
 
         for (int i = offset + 1; i < @string.Length; i++)
-            if (@string[i] != _string[_position + i])
+            if (@string[i] != String[_position + i])
                 return false;
         return true;
     }
 
     public char
-    NextCharAt(int offset) => _string[_position + offset];
+    NextCharAt(int offset) => String[_position + offset];
 
 
     public bool
     NextIsSpace => NextChar == ' ';
+
+    public bool 
+    NextIsDigit => NextChar.IsDigit();
 
     public char 
     ReadOne() {
@@ -62,7 +81,7 @@ public class FluentParser {
     public string
     Read(int count) {
         count = Math.Min(count, CharactersLeft);
-        var result = _string.Substring(_position, count);
+        var result = String.Substring(_position, count);
         _position += count;
         return result;
     } 
@@ -76,8 +95,8 @@ public class FluentParser {
             return string.Empty;
         var end = Math.Min(_position + maxLength, Length);
         for (int i =_position; i < end; i++)
-            if (_string[i] == @char){
-                var result = _string.Substring(_position, i - _position);
+            if (String[i] == @char){
+                var result = String.Substring(_position, i - _position);
                 _position = i;
                 return result;
             }
@@ -86,15 +105,33 @@ public class FluentParser {
 
     public string 
     ReadUntil(char @char) {
-        if (NextChar == @char)
+        if (!HasNext || NextChar == @char)
             return string.Empty;
         for (int i =_position; i < Length; i++)
-            if (_string[i] == @char){
-                var result = _string.Substring(_position, i - _position);
+            if (String[i] == @char){
+                var result = String.Substring(_position, i - _position);
                 _position = i;
                 return result;
             }
         return string.Empty;
+    }
+
+    public string 
+    ReadUntil(string @string) {
+        var index = String.IndexOf(@string, _position, StringComparison.Ordinal);
+        if (index == -1 || index == _position)
+            return String.Empty;
+        return String.Substring(_position, index - _position);
+    }
+
+    public string
+    ReadUntilLast(char @char) {
+        var index = String.LastIndexOf(@char);
+        if (index == -1 || index == _position)
+            return string.Empty;
+        var result =  String.Substring(Position, index - Position);
+        _position = index;
+        return result;
     }
 
     public bool
@@ -112,13 +149,13 @@ public class FluentParser {
             return false;
         }
 
-        var index = _string.IndexOf(@char, _position, Math.Min(maxLength, CharactersLeft));
+        var index = String.IndexOf(@char, _position, Math.Min(maxLength, CharactersLeft));
         if (index == -1) {
             result = null;
             return false;
         }
         
-        result = _string.Substring(_position, index- _position);
+        result = String.Substring(_position, index- _position);
         _position = index;
         return true;
     }
@@ -138,20 +175,20 @@ public class FluentParser {
     public bool 
     TryReadUntil(string @string,  out string result) {
         var initialPosition = _position;
-        var index = _string.IndexOf(@string, _position, StringComparison.Ordinal);
+        var index = String.IndexOf(@string, _position, StringComparison.Ordinal);
         if (index == -1) {
             result = null;
             return false;
         }
         
-        result = _string.Substring(_position, index- _position);
+        result = String.Substring(_position, index- _position);
         _position = index;
         return true;
     }
 
     public bool
     TryLookWord(out string result, int offset = 0) => 
-        new FluentParser(_string).Skip(_position).TryReadWord(out result, offset);
+        new FluentParser(String).Skip(_position).TryReadWord(out result, offset);
 
     public bool 
     TryReadWord(out string result, int offset = 0) {
@@ -161,8 +198,8 @@ public class FluentParser {
         }
 
         for (int i = _position + offset; i < Length; i++) {
-            if (!_string[i].IsWordCharacter()) {
-                result = _string.Substring(_position + offset, i - _position - offset);
+            if (!String[i].IsWordCharacter()) {
+                result = String.Substring(_position + offset, i - _position - offset);
                 _position = i;
                 return true;
             }
@@ -185,10 +222,10 @@ public class FluentParser {
 
         for (int i = _position + offset; i < Length; i++) {
             if (Next(@string, offset: i)) {
-                result = _string.Substring(_position + offset, i - _position - offset);
+                result = String.Substring(_position + offset, i - _position - offset);
                 return true;
             }
-            if (!_string[i].IsWordCharacter())
+            if (!String[i].IsWordCharacter())
                 break;
         }
 
@@ -198,8 +235,8 @@ public class FluentParser {
     public FluentParser 
     SkipUntil(char @char) {
         if (HasCurrent) {
-            var index = _string.IndexOf(@char, _position);
-            _position = index == -1 ? _string.Length : index;
+            var index = String.IndexOf(@char, _position);
+            _position = index == -1 ? String.Length : index;
         }
         return this;
     }
@@ -207,8 +244,8 @@ public class FluentParser {
     public FluentParser
     SkipAfter(char @char) {
         if (HasCurrent) {
-            var index = _string.IndexOf(@char, _position);
-            _position = index == -1 ? _string.Length : index + 1;
+            var index = String.IndexOf(@char, _position);
+            _position = index == -1 ? String.Length : index + 1;
         }
         return this;
     }
@@ -216,8 +253,8 @@ public class FluentParser {
     public FluentParser
     SkipAfter(string @string) {
         if (HasCurrent) {
-            var index = _string.IndexOf(@string, _position, StringComparison.Ordinal);
-            _position = index == -1 ? _string.Length : index + 1;
+            var index = String.IndexOf(@string, _position, StringComparison.Ordinal);
+            _position = index == -1 ? String.Length : index + @string.Length ;
         }
         return this;
     }
@@ -268,8 +305,108 @@ public class FluentParser {
         return false;
     }
 
+    public bool 
+    TryReadJson<T>(Func<string, T> parser, out T result) {
+        result = default;
+        if (!HasNext || NextChar != '{')
+            return false;
+
+        var length = 0;
+        var initialPosition = _position;
+        int braces = 0;
+        while(HasNext) {
+            var next = NextChar;
+            SkipOne();
+            if (next == '{')
+                braces++;
+            else if (next == '}') {
+                braces--;
+                if (braces == 0) {
+                    try {
+                        result = parser(String.Substring(initialPosition, Position - initialPosition));
+                        return true;
+                    }
+                    catch(Exception) {
+                        _position = initialPosition;
+                        return false;
+                    }
+                }
+            }
+        }
+        _position = initialPosition;
+        return false;
+    }
+
+    public string
+    ReadToEnd() => String.Substring(Position);
+
+    public int
+    ReadIntUntil(char @char) {
+        if (!NextChar.IsDigit())
+            throw new InvalidOperationException($"Read must be positioned at a digit but was {this}");
+        var result = ReadDigit();
+        while(NextChar != @char) result = result * 10 + ReadDigit();
+        return result;
+    }
+
+    public int 
+    ReadNextInt() => SkipToDigit().ReadInt();
+
+    public int 
+    ReadInt() {
+        int result = 0;
+        while(HasCurrent && NextChar.IsDigit()) {
+            result = result * 10 + NextChar.ToDigit();
+            SkipOne();
+        }
+        return result;
+    }
+
+    public double
+    ReadNextDouble(CultureInfo cultureInfo = null) => SkipToDigit().ReadDouble(cultureInfo);
+
+    public double 
+    ReadDouble(CultureInfo cultureInfo = null) {
+        if (!NextChar.IsDigit())
+           throw new InvalidOperationException($"Reader position must be placed on a digit: {this}");
+        double result = ReadInt();
+
+        void 
+        AddIntPart(int number, int digits) => result = result * Math.Pow(10,  digits) + number;
+       
+       (int number, int digits) 
+        ReadIntLocal() {
+           var initialPosition = Position;
+           return (ReadInt(), Position - initialPosition);
+       }
+
+       while(HasCurrent) {
+           if (Next('.') || Next(',')){
+               if (!String[Position + 1].IsDigit())
+                   return result;
+               SkipOne();
+               var (number, digits) = ReadIntLocal();
+               if (digits == 3 && (cultureInfo == null || !Equals(cultureInfo, CultureInfo.InvariantCulture)))
+                   AddIntPart(number, 3);
+               else 
+                   return result + number / Math.Pow(10, digits);
+           }
+           else 
+               return result;
+       }
+
+       return result;
+    }
+
+    public int 
+    ReadDigit() {
+        var result = NextChar.ToDigit();
+        SkipOne();
+        return result;
+    }
+
     public FluentParser
-    Clone() => new FluentParser(_string).Skip(_position);
+    Clone() => new FluentParser(String).Skip(_position);
 
     public override string 
     ToString() {
@@ -279,7 +416,7 @@ public class FluentParser {
         for (int i = startIndex; i < endIndex; i++) {
             if (i == _position)
                 result.Append("*");
-            result.Append(_string[i]);
+            result.Append(String[i]);
         }
         return result.ToString();
     }
@@ -301,6 +438,15 @@ FluentParserHelperInternal {
 
     public static bool
     IsLetter(this char @char) => @char.IsSmallLetter() || @char.IsCapitalLetter();
+
+    public static int
+    ToDigit(this char @char) {
+        #if DEBUG
+        if (@char - '0' > 9)
+            throw new ArgumentOutOfRangeException(nameof(@char));
+        #endif
+        return  @char - '0';
+    }
 }
 
 public static class 
