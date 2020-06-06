@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 
 namespace FluentParserNet {
@@ -43,6 +44,18 @@ public class FluentParser {
         return this;
     }
 
+    public FluentParser
+    RollbackUntilSpace() => RollbackUntil(" ");
+
+    public FluentParser
+    RollbackUntil(string @string) {
+        var index = String.LastIndexOf(@string, Position, StringComparison.Ordinal);
+        if (index == -1) 
+            _position = 0;
+        _position = index + @string.Length;
+        return this;
+    }
+
     public bool
     Next(char @char) => NextChar == @char;
 
@@ -63,7 +76,6 @@ public class FluentParser {
 
     public char
     NextCharAt(int offset) => String[_position + offset];
-
 
     public bool
     NextIsSpace => NextChar == ' ';
@@ -184,6 +196,24 @@ public class FluentParser {
         }
         
         result = String.Substring(_position, index- _position);
+        _position = index;
+        return true;
+    }
+
+    public bool 
+    TrySkipAfter(string @string) {
+        var index = String.IndexOf(@string, _position, StringComparison.Ordinal);
+        if (index == -1)
+            return false;
+        _position = index + @string.Length;
+        return true;
+    }
+
+    public bool 
+    TrySkipUntil(string @string) {
+        var index = String.IndexOf(@string, _position, StringComparison.Ordinal);
+        if (index == -1)
+            return false;
         _position = index;
         return true;
     }
@@ -357,6 +387,16 @@ public class FluentParser {
     public int 
     ReadInt() {
         int result = 0;
+        while(HasCurrent && NextChar.IsDigit()) {
+            result = result * 10 + NextChar.ToDigit();
+            SkipOne();
+        }
+        return result;
+    }
+
+    public long 
+    ReadLong() {
+        long result = 0;
         while(HasCurrent && NextChar.IsDigit()) {
             result = result * 10 + NextChar.ToDigit();
             SkipOne();
