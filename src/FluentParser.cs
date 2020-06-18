@@ -447,6 +447,19 @@ public class FluentParser {
         return result;
     }
 
+    public string 
+    ReadHexString() {
+        string result = string.Empty;
+        while(HasNext) {
+            var next = ReadOne();
+            if (next.IsHexDigit())
+                result += next.ToString();
+            else 
+                break;
+        }
+        return result;
+    }
+
     public FluentParser
     Clone() => new FluentParser(String).Skip(_position);
 
@@ -489,6 +502,9 @@ FluentParserHelperInternal {
         #endif
         return  @char - '0';
     }
+
+    public static bool 
+    IsHexDigit(this char @char) => @char.IsDigit() || 'A' <= @char && @char <= 'F' || 'a' <= @char && @char <= 'f';
 }
 
 public static class 
