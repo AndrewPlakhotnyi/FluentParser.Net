@@ -12,6 +12,7 @@ public class FluentParser {
     public char NextChar => String[_position];
     public bool HasNext => _position < String.Length - 1;
     public char NextNextChar => CharactersLeft > 1 ? String[_position + 1] : '\0';
+    public char PreviousChar => String[_position -1];
     public int Length => String.Length;
     public bool HasCurrent => String.Length > _position;
     public int CharactersLeft => Length - _position;
@@ -44,8 +45,17 @@ public class FluentParser {
         return this;
     }
 
+    public FluentParser 
+    SkipToEnd() {
+        _position = String.Length;
+        return this;
+    }
+
     public FluentParser
     RollbackUntilSpace() => RollbackUntil(" ");
+
+    public FluentParser
+    RollbackOne() => Skip(-1);
 
     public FluentParser
     RollbackUntil(string @string) {
@@ -125,6 +135,20 @@ public class FluentParser {
                 _position = i;
                 return result;
             }
+        return string.Empty;
+    }
+
+    public string 
+    ReadBackUntil(char @char) {
+        if (Position == 0 || PreviousChar == @char)
+            return string.Empty;
+        for(int i = _position - 1; i >=0; i--)
+            if (String[i] == @char) {
+                var result = String.Substring(i + 1, _position - i - 1);
+                _position = i + 1;
+                return result;
+            }
+
         return string.Empty;
     }
 
