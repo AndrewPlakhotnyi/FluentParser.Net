@@ -539,7 +539,7 @@ FluentParserHelper {
     public static long
     ParseLongFromHexString(this string @string)  => Convert.ToInt64(@string, 16);
 
-    public static long
+    public static int
     ParseIntFromHexString(this string @string)  => Convert.ToInt32(@string, 16);
 }
 
