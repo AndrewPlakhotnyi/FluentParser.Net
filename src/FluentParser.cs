@@ -108,6 +108,13 @@ public class FluentParser {
         return result;
     } 
 
+    public string 
+    ReadUntilPosition(int position) {
+        if (position < Position)
+            throw new ArgumentException($"Can't read until position {position} because now the reader is at the position {Position}");
+        return Read(count: position - Position);
+    }
+
     private string
     Read(FluentParser other) => this.Read(other.Position - _position);
 
@@ -294,6 +301,14 @@ public class FluentParser {
             var index = String.IndexOf(@char, _position);
             _position = index == -1 ? String.Length : index;
         }
+        return this;
+    }
+
+    public FluentParser
+    SkipUntilNextLine() {
+        SkipAfter('\n');
+        if (Next('\r'))
+            SkipOne();
         return this;
     }
 
