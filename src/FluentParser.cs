@@ -232,8 +232,8 @@ public class FluentParser {
     }
 
     public bool 
-    TrySkipAfter(string @string) {
-        var index = String.IndexOf(@string, _position, StringComparison.Ordinal);
+    TrySkipAfter(string @string, StringComparison comparisonType = StringComparison.Ordinal) {
+        var index = String.IndexOf(@string, _position, comparisonType);
         if (index == -1)
             return false;
         _position = index + @string.Length;
