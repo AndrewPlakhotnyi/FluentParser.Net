@@ -382,7 +382,6 @@ public class FluentParser {
         if (!HasNext || NextChar != '{')
             return false;
 
-        var length = 0;
         var initialPosition = _position;
         int braces = 0;
         while(HasNext) {
