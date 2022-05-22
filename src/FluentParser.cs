@@ -58,6 +58,9 @@ public class FluentParser {
     RollbackOne() => Skip(-1);
 
     public FluentParser
+    Rollback(int count) => Skip(-count);
+
+    public FluentParser
     RollbackUntil(string @string) {
         var index = String.LastIndexOf(@string, Position, StringComparison.Ordinal);
         if (index == -1) 
@@ -158,6 +161,9 @@ public class FluentParser {
 
         return string.Empty;
     }
+
+    public string 
+    ReadBackAll() => String.Substring(0, _position);
 
     public string 
     ReadUntil(string @string) {
@@ -512,6 +518,16 @@ public class FluentParser {
             result.Append(String[i]);
         }
         return result.ToString();
+    }
+
+    public FluentParser
+    SkipFromEndUntil(char @char) {
+        SkipToEnd().RollbackOne();
+        while (NextChar != @char) {
+            RollbackOne();
+        }
+
+        return this;
     }
 }
 
