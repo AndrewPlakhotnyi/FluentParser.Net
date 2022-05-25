@@ -529,6 +529,13 @@ public class FluentParser {
 
         return this;
     }
+
+    public FluentParser
+    VerifyNext(string @string)  {
+        if (!Next(@string))
+            throw new InvalidOperationException($"Expecting next=\"{@string.ToString()}\" but was \"{this}\"");
+        return this;
+    }
 }
 
 internal static class
