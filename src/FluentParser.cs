@@ -87,6 +87,15 @@ public class FluentParser {
         return true;
     }
 
+    public bool
+    NextCaseInSensitive(string @string, int offset = 0) {
+        if (@string.Length > CharactersLeft)
+            return false;
+
+        var result = this.Clone().Read(@string.Length);
+        return result.Equals(@string,comparisonType: StringComparison.OrdinalIgnoreCase);
+    }
+
     public char
     NextCharAt(int offset) => String[_position + offset];
 
