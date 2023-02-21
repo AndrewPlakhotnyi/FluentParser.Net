@@ -493,6 +493,36 @@ public class FluentParser {
        return result;
     }
 
+    public double
+    ReadDoubleHighPrecision() {
+        var isNegative = NextChar == '-';
+        if (isNegative)
+            SkipOne();
+        if (!NextChar.IsDigit())
+           throw new InvalidOperationException($"Reader position must be placed on a digit: {this}");
+
+        double result = ReadInt();
+
+        if (HasNext){ 
+            if (!Next('.') && !Next(','))
+                throw new InvalidOperationException(". or , expected in double");
+            if (!String[Position + 1].IsDigit())
+                return result;
+            SkipOne();
+            var (number, digits) = ReadLongLocal();
+            result += number / Math.Pow(10, digits);
+
+        }
+
+        return isNegative ? result * -1 : result;
+
+        (long number, int digits) 
+        ReadLongLocal() {
+            var initialPosition = Position;
+            return (ReadLong(), Position - initialPosition);
+        }
+    }
+
     public int 
     ReadDigit() {
         var result = NextChar.ToDigit();
