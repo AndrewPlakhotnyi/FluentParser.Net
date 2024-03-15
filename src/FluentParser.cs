@@ -1,5 +1,8 @@
-﻿using System;
+using System;
 using System.Globalization;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 
 namespace FluentParserNet {
@@ -73,6 +76,10 @@ namespace FluentParserNet {
         _position = index + @string.Length;
         return this;
     }
+
+    public bool
+    NextOneOf(string[] strings) =>
+        strings.Any(@string => this.NextCaseInSensitive(@string));
 
     public bool
     Next(char @char) => NextChar == @char;
@@ -366,7 +373,6 @@ namespace FluentParserNet {
         }
         return this;
     }
-
 
     public bool
     TryReadXmlNode(out string result) {
