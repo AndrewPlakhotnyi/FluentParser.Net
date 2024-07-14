@@ -204,6 +204,9 @@ namespace FluentParserNet {
         return result;
     }
 
+    public string 
+    ReadUntilSpace() => ReadUntil(' ');
+
     public bool
     TryReadUntilSpace(out string result) => TryReadUntil(' ', int.MaxValue, out result);
 
