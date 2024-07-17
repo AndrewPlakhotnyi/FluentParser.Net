@@ -194,10 +194,28 @@ namespace FluentParserNet {
         return result;
     }
 
+    public bool 
+    TryReadUntilLast(string subString, out string result) {
+        var index = String.LastIndexOf(subString);
+        if (index == -1 || index <= _position) {
+            result = string.Empty;
+            return false;
+        }
+        result = String.Substring(Position, index - Position);
+        _position = index;
+        return true;
+    }
+
+    public bool
+    TryReadUntilLast(char @char, out string result) {
+        result = ReadUntilLast(@char);
+        return result != string.Empty;
+    }
+
     public string
     ReadUntilLast(char @char) {
         var index = String.LastIndexOf(@char);
-        if (index == -1 || index == _position)
+        if (index == -1 || index == _position || index < _position)
             return string.Empty;
         var result = String.Substring(Position, index - Position);
         _position = index;
