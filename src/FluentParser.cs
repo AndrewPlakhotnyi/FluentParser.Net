@@ -385,6 +385,15 @@ namespace FluentParserNet {
     }
 
     public FluentParser
+    SkipAfterLast(string @string) {
+        var index = @String.LastIndexOf(@string);
+        if (index <= Position)
+            return this;
+        _position = index + @string.Length;
+        return this;
+    }
+
+    public FluentParser
     SkipAfter(string @string) {
         if (HasCurrent) {
             var index = String.IndexOf(@string, _position, StringComparison.Ordinal);
