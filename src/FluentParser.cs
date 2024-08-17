@@ -503,21 +503,27 @@ namespace FluentParserNet {
     public int
     ReadInt() {
         int result = 0;
+        var isNegative = HasCurrent && NextChar == '-';
+        if (isNegative)
+            SkipOne();
         while (HasCurrent && NextChar.IsDigit()) {
             result = result * 10 + NextChar.ToDigit();
             SkipOne();
         }
-        return result;
+        return isNegative ? -result : result;
     }
 
     public long
     ReadLong() {
         long result = 0;
+        var isNegative = HasCurrent && NextChar == '-';
+        if (isNegative)
+            SkipOne();
         while (HasCurrent && NextChar.IsDigit()) {
             result = result * 10 + NextChar.ToDigit();
             SkipOne();
         }
-        return result;
+        return isNegative ? -result : result;
     }
 
     public double
