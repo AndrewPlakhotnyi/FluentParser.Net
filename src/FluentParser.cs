@@ -32,7 +32,7 @@ namespace FluentParserNet {
 
     public FluentParser
     SkipSpaces() {
-        while (HasNext && NextChar == ' ')
+        while (HasCurrent && NextChar == ' ')
             SkipOne();
         return this;
     }
@@ -156,7 +156,7 @@ namespace FluentParserNet {
 
     public string
     ReadUntil(char @char) {
-        if (!HasNext || NextChar == @char)
+        if (!HasCurrent || NextChar == @char)
             return string.Empty;
         for (int i = _position; i < Length; i++)
             if (String[i] == @char) {
